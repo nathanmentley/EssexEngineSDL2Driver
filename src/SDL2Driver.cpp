@@ -143,13 +143,13 @@ void EssexEngine::Drivers::SDL2::SDL2Driver::RenderString(std::string data, int 
     */
 }
 
-EssexEngine::SharedPointer<EssexEngine::Daemons::Gfx::ISprite> EssexEngine::Drivers::SDL2::SDL2Driver::GetSprite(WeakPointer<Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height) {
-    if (textureCache.find(fileContent.Get()->GetFileName()) == textureCache.end() ) {
-        SDL_RWops* rw = SDL_RWFromMem(fileContent.Get()->GetBuffer(), fileContent.Get()->GetSize());
+EssexEngine::WeakPointer<EssexEngine::Daemons::Gfx::ISprite> EssexEngine::Drivers::SDL2::SDL2Driver::GetSprite(CachedPointer<Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height) {
+    if (textureCache.find(fileContent->GetFileName()) == textureCache.end() ) {
+        SDL_RWops* rw = SDL_RWFromMem(fileContent->GetBuffer(), fileContent->GetSize());
         SDL_Surface* surface = IMG_Load_RW(rw, 1);
-        textureCache[fileContent.Get()->GetFileName()] = SDL_CreateTextureFromSurface(renderer, surface);
+        textureCache[fileContent->GetFileName()] = SDL_CreateTextureFromSurface(renderer, surface);
     }
-    return SharedPointer<Daemons::Gfx::ISprite>(new SDL2Sprite(textureCache[fileContent.Get()->GetFileName()], _x, _y, _width, _height));
+    return EssexEngine::WeakPointer<Daemons::Gfx::ISprite>(new SDL2Sprite(std::move(fileContent), textureCache[fileContent->GetFileName()], _x, _y, _width, _height));
 }
 
 //IInputDriver

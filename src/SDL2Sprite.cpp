@@ -11,7 +11,8 @@
 
 #include <EssexEngineSDL2Driver/SDL2Sprite.h>
 
-EssexEngine::Drivers::SDL2::SDL2Sprite::SDL2Sprite(SDL_Texture* _texture, int _x, int _y, int _width, int _height) {
+EssexEngine::Drivers::SDL2::SDL2Sprite::SDL2Sprite(CachedPointer<Daemons::FileSystem::IFileBuffer> _fileBuffer, SDL_Texture* _texture, int _x, int _y, int _width, int _height)
+    : fileBuffer(std::move(_fileBuffer)) {
     texture = _texture;
     x = _x;
     y = _y;

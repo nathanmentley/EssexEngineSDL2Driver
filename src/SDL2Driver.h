@@ -12,6 +12,7 @@
 
 #include <string>
 #include <map>
+#include <utility>
 
 #include <SDL2/SDL.h>
 #include <SDL2_ttf/SDL_ttf.h>
@@ -19,9 +20,10 @@
 #include <EssexEngineSDL2Driver/SDL2ImGuiBridge.h>
 
 #include <EssexEngineCore/WeakPointer.h>
-#include <EssexEngineCore/SharedPointer.h>
+#include <EssexEngineCore/CachedPointer.h>
 #include <EssexEngineCore/BaseDriver.h>
 #include <EssexEngineCore/Context.h>
+#include <EssexEngineCore/LogDaemon.h>
 #include <EssexEngineGfxDaemon/IGfxDriver.h>
 #include <EssexEngineInputDaemon/IInputDriver.h>
 #include <EssexEngineSystemDaemon/ISystemDriver.h>
@@ -37,8 +39,8 @@ namespace SDL2{
         
         //IDriver
         void Init() {
-            if(GetContext()->HasDriver<Core::Logging::ILogDriver>()) {
-                GetContext()->GetDriver<Core::Logging::ILogDriver>()->LogLine(
+            if(GetContext()->HasDaemon<Core::Logging::LogDaemon>()) {
+                GetContext()->GetDaemon<Core::Logging::LogDaemon>()->LogLine(
                     "Loading Driver [%s] [%s]",
                     GetDriverName().c_str(),
                     GetDriverVersion().c_str()
@@ -59,7 +61,7 @@ namespace SDL2{
         void RenderModel(WeakPointer<Daemons::Gfx::Model> model);
         void RenderString(std::string data, int x, int y);
         
-        SharedPointer<Daemons::Gfx::ISprite> GetSprite(WeakPointer<Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height);
+        WeakPointer<Daemons::Gfx::ISprite> GetSprite(CachedPointer<Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height);
         
         //IInputDriver
         bool IsKeyPressed(Daemons::Input::KeyboardButton::InputKeys key);
