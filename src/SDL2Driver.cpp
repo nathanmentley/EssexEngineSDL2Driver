@@ -143,7 +143,7 @@ void EssexEngine::Drivers::SDL2::SDL2Driver::RenderString(std::string data, int 
     */
 }
 
-EssexEngine::WeakPointer<EssexEngine::Daemons::Gfx::ISprite> EssexEngine::Drivers::SDL2::SDL2Driver::GetSprite(CachedPointer<Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height) {
+EssexEngine::WeakPointer<EssexEngine::Daemons::Gfx::ISprite> EssexEngine::Drivers::SDL2::SDL2Driver::GetSprite(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height) {
     if (textureCache.find(fileContent->GetFileName()) == textureCache.end() ) {
         SDL_RWops* rw = SDL_RWFromMem(fileContent->GetBuffer(), fileContent->GetSize());
         SDL_Surface* surface = IMG_Load_RW(rw, 1);

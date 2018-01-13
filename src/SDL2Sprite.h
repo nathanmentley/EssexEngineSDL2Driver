@@ -22,7 +22,7 @@ namespace Drivers{
 namespace SDL2{
     class SDL2Sprite:public Daemons::Gfx::ISprite {
     public:
-        SDL2Sprite(CachedPointer<Daemons::FileSystem::IFileBuffer> _fileBuffer, SDL_Texture* _texture, int _x, int _y, int _width, int _height);
+        SDL2Sprite(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> _fileBuffer, SDL_Texture* _texture, int _x, int _y, int _width, int _height);
         ~SDL2Sprite();
         
         SDL_Texture* GetSprite();
@@ -34,7 +34,7 @@ namespace SDL2{
         int GetTotalWidth();
         int GetTotalHeight();
     private:
-        CachedPointer<Daemons::FileSystem::IFileBuffer> fileBuffer;
+        CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileBuffer;
         SDL_Texture* texture;
         int x;
         int y;

@@ -61,7 +61,7 @@ namespace SDL2{
         void RenderModel(WeakPointer<Daemons::Gfx::Model> model);
         void RenderString(std::string data, int x, int y);
         
-        WeakPointer<Daemons::Gfx::ISprite> GetSprite(CachedPointer<Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height);
+        WeakPointer<Daemons::Gfx::ISprite> GetSprite(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height);
         
         //IInputDriver
         bool IsKeyPressed(Daemons::Input::KeyboardButton::InputKeys key);
