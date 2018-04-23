@@ -14,24 +14,20 @@
 #include <map>
 #include <utility>
 
-#include <SDL2/SDL.h>
-#include <SDL2_ttf/SDL_ttf.h>
-
-#include <EssexEngineSDL2Driver/SDL2ImGuiBridge.h>
+#include <OpenGL/gl.h>
 
 #include <EssexEngineCore/WeakPointer.h>
 #include <EssexEngineCore/CachedPointer.h>
+#include <EssexEngineCore/UniquePointer.h>
 #include <EssexEngineCore/BaseDriver.h>
 #include <EssexEngineCore/Context.h>
 #include <EssexEngineCore/LogDaemon.h>
 #include <EssexEngineGfxDaemon/IGfxDriver.h>
-#include <EssexEngineInputDaemon/IInputDriver.h>
-#include <EssexEngineSystemDaemon/ISystemDriver.h>
 
 namespace EssexEngine{
 namespace Drivers{
 namespace SDL2{
-    class SDL2Driver:public Core::Drivers::Base::BaseDriver, public Daemons::Gfx::IGfxDriver, public Daemons::Input::IInputDriver, public Daemons::System::ISystemDriver
+    class SDL2Driver:public Core::Drivers::Base::BaseDriver, public Daemons::Gfx::IGfxDriver
     {
     public:
         SDL2Driver(WeakPointer<Context> _context);
@@ -49,36 +45,20 @@ namespace SDL2{
         }
         
         //IGfxDriver
-        void Setup();
-        
-        int GetScreenWidth();
-        int GetScreenHeight();
-        
-        void StartRender();
-        void FinishRender();
-        
-        void RenderEntity(WeakPointer<Daemons::Gfx::Entity> entity);
-        void RenderModel(WeakPointer<Daemons::Gfx::Model> model);
-        void RenderString(std::string data, int x, int y);
-        
+        void Setup(WeakPointer<Daemons::Window::IRenderContext> target);
+
+        void StartRender(WeakPointer<Daemons::Window::IRenderContext> target);
+        void FinishRender(WeakPointer<Daemons::Window::IRenderContext> target);
+
+        void RenderEntity(WeakPointer<Daemons::Window::IRenderContext> target, WeakPointer<Daemons::Gfx::Entity> entity);
+        void RenderModel(WeakPointer<Daemons::Window::IRenderContext> target, WeakPointer<Daemons::Gfx::Model> model);
+        void RenderString(WeakPointer<Daemons::Window::IRenderContext> target, std::string data, int x, int y);
+
         WeakPointer<Daemons::Gfx::ISprite> GetSprite(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height);
-        
-        //IInputDriver
-        bool IsKeyPressed(Daemons::Input::KeyboardButton::InputKeys key);
-        bool IsMousePressed(Daemons::Input::MouseButton::MouseButtons key,  Daemons::Input::MouseEventLocation &data);
-        
-        //ISystemDriver
-        void StartTimer();
-        int GetElapsedTime();
-        void Sleep(int milliseconds);
         
         //BaseDriver
         std::string GetDriverName() { return "SDL2"; }
         std::string GetDriverVersion() { return ESSEX_ENGINE_VERSION; }
     private:
-        std::map<std::string, SDL_Texture*> textureCache;
-        SDL_Window* window;
-        SDL_Renderer* renderer;
-        Uint32 lastTicks;
     };
 }}};

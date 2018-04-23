@@ -12,5 +12,6 @@ target_link_libraries(EssexEngineSDL2Driver EssexEngineCore)
 target_link_libraries(EssexEngineSDL2Driver EssexEngineGfxDaemon)
 target_link_libraries(EssexEngineSDL2Driver EssexEngineInputDaemon)
 target_link_libraries(EssexEngineSDL2Driver EssexEngineSystemDaemon)
+target_link_libraries(EssexEngineSDL2Driver EssexEngineFileSystemDaemon)
 
 target_include_directories(EssexEngineSDL2Driver PRIVATE ${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})

@@ -15,8 +15,6 @@ extern "C" {
     void driver_init(EssexEngine::Context* context) {
         EssexEngine::Drivers::SDL2::SDL2Driver* sdl2Driver = new EssexEngine::Drivers::SDL2::SDL2Driver(context);
         
-        context->RegisterDriver<EssexEngine::Daemons::System::ISystemDriver>(sdl2Driver);
-        context->RegisterDriver<EssexEngine::Daemons::Input::IInputDriver>(sdl2Driver);
         context->RegisterDriver<EssexEngine::Daemons::Gfx::IGfxDriver>(sdl2Driver);
     }
 }
