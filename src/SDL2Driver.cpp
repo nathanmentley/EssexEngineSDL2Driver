@@ -14,10 +14,16 @@
 using EssexEngine::WeakPointer;
 
 using EssexEngine::Daemons::Input::KeyboardButton::InputKeys;
+
 using EssexEngine::Daemons::FileSystem::IFileBuffer;
+
 using EssexEngine::Daemons::Gfx::Entity;
 using EssexEngine::Daemons::Gfx::ISprite;
 using EssexEngine::Daemons::Gfx::Model;
+
+using EssexEngine::Daemons::Sfx::IMusic;
+using EssexEngine::Daemons::Sfx::IAudio;
+
 using EssexEngine::Daemons::Window::IRenderContext;
 
 using EssexEngine::Drivers::SDL2::SDL2Driver;
@@ -31,7 +37,10 @@ SDL2Driver::SDL2Driver(WeakPointer<Context> _context):
         textureCache = std::map<std::string, WeakPointer<SDL_Texture>>();
     
         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-        Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
+        Mix_Init(MIX_INIT_MP3);
+        if(Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640) < 0) {
+            GetContext()->GetDaemon<Core::Logging::LogDaemon>()->LogLine("open audio failed");
+        }
     }
 
 SDL2Driver::~SDL2Driver() {
@@ -137,4 +146,20 @@ bool SDL2Driver::IsKeyPressed(Daemons::Input::KeyboardButton::InputKeys key) {
 
 bool SDL2Driver::IsMousePressed(Daemons::Input::MouseButton::MouseButtons key, Daemons::Input::MouseEventLocation &data) {
     return false;
+}
+
+//ISfxDriver
+void SDL2Driver::PlayAudio(WeakPointer<IAudio> audio) {}
+void SDL2Driver::PlayMusic(WeakPointer<IMusic> music) {
+    GetContext()->GetDaemon<Core::Logging::LogDaemon>()->LogLine("play music");
+    Mix_PlayMusic(music.Cast<SDL2Music>()->GetMusic(), 1);
+}
+
+WeakPointer<IAudio> SDL2Driver::GetAudio(CachedPointer<std::string, IFileBuffer> fileContent) {
+    return WeakPointer<IAudio>();
+}
+
+WeakPointer<IMusic> SDL2Driver::GetMusic(CachedPointer<std::string, IFileBuffer> fileContent) {
+    GetContext()->GetDaemon<Core::Logging::LogDaemon>()->LogLine("get music");
+    return WeakPointer<SDL2Music>(new SDL2Music(fileContent.ToWeakPointer())).Cast<IMusic>();
 }

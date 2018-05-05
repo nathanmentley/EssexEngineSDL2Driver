@@ -21,20 +21,46 @@ namespace Drivers{
 namespace SDL2{
     class SDL2Sprite:public Daemons::Gfx::ISprite {
     public:
-        SDL2Sprite(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> _fileBuffer, SDL_Texture* _texture, int _x, int _y, int _width, int _height);
-        ~SDL2Sprite();
+        SDL2Sprite(
+            CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> _fileBuffer, WeakPointer<SDL_Texture> _texture, int _x, int _y, int _width, int _height
+        ): fileBuffer(std::move(_fileBuffer)) {
+            texture = _texture;
+            x = _x;
+            y = _y;
+            width = _width;
+            height = _height;
+        }
+        ~SDL2Sprite() {}
         
-        SDL_Texture* GetSprite();
-        
-        int GetX();
-        int GetY();
-        int GetWidth();
-        int GetHeight();
-        int GetTotalWidth();
-        int GetTotalHeight();
+        SDL_Texture* GetSprite() {
+            return texture;
+        }
+
+        int GetX() {
+            return x;
+        }
+        int GetY() {
+            return y;
+        }
+        int GetWidth() {
+            return width;
+        }
+        int GetHeight() {
+            return height;
+        }
+        int GetTotalWidth() {
+            int w, h;
+            SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+            return w;
+        }
+        int GetTotalHeight() {
+            int w, h;
+            SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+            return h;
+        }
     private:
         CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileBuffer;
-        SDL_Texture* texture;
+        WeakPointer<SDL_Texture> texture;
         int x;
         int y;
         int width;

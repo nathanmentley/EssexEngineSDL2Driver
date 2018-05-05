@@ -30,6 +30,8 @@
 #include <EssexEngineSfxDaemon/ISfxDriver.h>
 
 #include <EssexEngineSDL2Driver/SDL2Sprite.h>
+#include <EssexEngineSDL2Driver/SDL2Music.h>
+#include <EssexEngineSDL2Driver/SDL2Audio.h>
 
 namespace EssexEngine{
 namespace Drivers{
@@ -66,6 +68,13 @@ namespace SDL2{
         //IInputDriver
         bool IsKeyPressed(Daemons::Input::KeyboardButton::InputKeys key);
         bool IsMousePressed(Daemons::Input::MouseButton::MouseButtons key,  Daemons::Input::MouseEventLocation &data);
+
+        //ISfxDriver
+        void PlayAudio(WeakPointer<Daemons::Sfx::IAudio> audio);
+        void PlayMusic(WeakPointer<Daemons::Sfx::IMusic> music);
+        
+        WeakPointer<Daemons::Sfx::IAudio> GetAudio(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent);
+        WeakPointer<Daemons::Sfx::IMusic> GetMusic(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent);
 
         //BaseDriver
         std::string GetDriverName() { return "SDL2"; }
