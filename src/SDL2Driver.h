@@ -14,7 +14,9 @@
 #include <map>
 #include <utility>
 
-#include <OpenGL/gl.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 
 #include <EssexEngineCore/WeakPointer.h>
 #include <EssexEngineCore/CachedPointer.h>
@@ -22,12 +24,17 @@
 #include <EssexEngineCore/BaseDriver.h>
 #include <EssexEngineCore/Context.h>
 #include <EssexEngineCore/LogDaemon.h>
+
+#include <EssexEngineInputDaemon/IInputDriver.h>
 #include <EssexEngineGfxDaemon/IGfxDriver.h>
+#include <EssexEngineSfxDaemon/ISfxDriver.h>
+
+#include <EssexEngineSDL2Driver/SDL2Sprite.h>
 
 namespace EssexEngine{
 namespace Drivers{
 namespace SDL2{
-    class SDL2Driver:public Core::Drivers::Base::BaseDriver, public Daemons::Gfx::IGfxDriver
+    class SDL2Driver:public Core::Drivers::Base::BaseDriver, public Daemons::Gfx::IGfxDriver, public Daemons::Sfx::ISfxDriver, public Daemons::Input::IInputDriver
     {
     public:
         SDL2Driver(WeakPointer<Context> _context);
@@ -54,11 +61,19 @@ namespace SDL2{
         void RenderModel(WeakPointer<Daemons::Window::IRenderContext> target, WeakPointer<Daemons::Gfx::Model> model);
         void RenderString(WeakPointer<Daemons::Window::IRenderContext> target, std::string data, int x, int y);
 
-        WeakPointer<Daemons::Gfx::ISprite> GetSprite(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height);
+        WeakPointer<Daemons::Gfx::ISprite> GetSprite(WeakPointer<Daemons::Window::IRenderContext> target, CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height);
         
+        //IInputDriver
+        bool IsKeyPressed(Daemons::Input::KeyboardButton::InputKeys key);
+        bool IsMousePressed(Daemons::Input::MouseButton::MouseButtons key,  Daemons::Input::MouseEventLocation &data);
+
         //BaseDriver
         std::string GetDriverName() { return "SDL2"; }
         std::string GetDriverVersion() { return ESSEX_ENGINE_VERSION; }
     private:
+        std::map<Daemons::Window::IRenderContext*, WeakPointer<SDL_Surface>> rgbaBuffers;
+        std::map<Daemons::Window::IRenderContext*, WeakPointer<SDL_Surface>> buffers;
+        std::map<Daemons::Window::IRenderContext*, WeakPointer<SDL_Renderer>> renderers;
+        std::map<std::string, WeakPointer<SDL_Texture>> textureCache;
     };
 }}};

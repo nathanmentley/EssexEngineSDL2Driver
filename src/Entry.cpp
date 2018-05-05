@@ -11,10 +11,26 @@
 
 #include <EssexEngineSDL2Driver/SDL2Driver.h>
 
+using EssexEngine::Context;
+using EssexEngine::WeakPointer;
+
+using EssexEngine::Drivers::SDL2::SDL2Driver;
+using EssexEngine::Daemons::Gfx::IGfxDriver;
+using EssexEngine::Daemons::Sfx::ISfxDriver;
+using EssexEngine::Daemons::Input::IInputDriver;
+
 extern "C" {
-    void driver_init(EssexEngine::Context* context) {
-        EssexEngine::Drivers::SDL2::SDL2Driver* sdl2Driver = new EssexEngine::Drivers::SDL2::SDL2Driver(context);
+    void driver_init(WeakPointer<Context> context) {
+        WeakPointer<SDL2Driver> driver = (new SDL2Driver(context));
         
-        context->RegisterDriver<EssexEngine::Daemons::Gfx::IGfxDriver>(sdl2Driver);
+        context->RegisterDriver<IGfxDriver>(
+            driver.Cast<IGfxDriver>() 
+        );
+        context->RegisterDriver<ISfxDriver>(
+            driver.Cast<ISfxDriver>() 
+        );
+        context->RegisterDriver<IInputDriver>(
+            driver.Cast<IInputDriver>()
+        );
     }
 }

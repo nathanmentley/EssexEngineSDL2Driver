@@ -11,7 +11,6 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-#include <SDL2_image/SDL_image.h>
 
 #include <EssexEngineCore/CachedPointer.h>
 #include <EssexEngineGfxDaemon/IGfxDriver.h>

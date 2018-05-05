@@ -10,106 +10,131 @@
  */
 
 #include <EssexEngineSDL2Driver/SDL2Driver.h>
-#include <EssexEngineSDL2Driver/SDL2Sprite.h>
 
-EssexEngine::Drivers::SDL2::SDL2Driver::SDL2Driver(WeakPointer<Context> _context):BaseDriver(_context),
-surface(
-    UniquePointer<SDL_Surface>(
-        SDL_CreateRGBSurface(0, 1024, 800, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff)
-    )
-),
-renderer(
-    UniquePointer<SDL_Renderer>(
-        SDL_CreateSoftwareRenderer(surface)
-    )
-) {
-    textureCache = std::map<std::string, SDL_Texture*>();
-}
+using EssexEngine::WeakPointer;
 
-EssexEngine::Drivers::SDL2::SDL2Driver::~SDL2Driver() {
-    TTF_Quit();
+using EssexEngine::Daemons::Input::KeyboardButton::InputKeys;
+using EssexEngine::Daemons::FileSystem::IFileBuffer;
+using EssexEngine::Daemons::Gfx::Entity;
+using EssexEngine::Daemons::Gfx::ISprite;
+using EssexEngine::Daemons::Gfx::Model;
+using EssexEngine::Daemons::Window::IRenderContext;
+
+using EssexEngine::Drivers::SDL2::SDL2Driver;
+
+SDL2Driver::SDL2Driver(WeakPointer<Context> _context): 
+    BaseDriver(_context) {
+        buffers = std::map<Daemons::Window::IRenderContext*, WeakPointer<SDL_Surface>>();
+        rgbaBuffers = std::map<Daemons::Window::IRenderContext*, WeakPointer<SDL_Surface>>();
+        renderers = std::map<Daemons::Window::IRenderContext*, WeakPointer<SDL_Renderer>>();
+
+        textureCache = std::map<std::string, WeakPointer<SDL_Texture>>();
     
-    SDL_DestroyRenderer(renderer);
-    SDL_Quit();
+        SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+        Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
+    }
+
+SDL2Driver::~SDL2Driver() {
+    Mix_CloseAudio();
+
+    //Clear textureCache since they're weak pointers
+    //Clear buffers
+    //Clear renderers
 }
 
 //IGfxDriver
-void EssexEngine::Drivers::SDL2::SDL2Driver::Setup(WeakPointer<Daemons::Window::IRenderContext> target) {
-    SDL_Init(SDL_INIT_EVERYTHING);
-    
-    TTF_Init();
-    
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 255);
-    
+void SDL2Driver::Setup(WeakPointer<IRenderContext> target) {
+    buffers[target.Get()] = SDL_CreateRGBSurface(0, target->GetWidth(), target->GetHeight(), 32, 0, 0, 0, 0);
+    rgbaBuffers[target.Get()] = SDL_CreateRGBSurface(0, target->GetWidth(), target->GetHeight(), 32, 0, 0, 0, 0);
+    renderers[target.Get()] = SDL_CreateSoftwareRenderer(buffers[target.Get()]);
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    
+    target->RenderToContext(WeakPointer<void>(buffers[target.Get()]->pixels));
 }
 
-void EssexEngine::Drivers::SDL2::SDL2Driver::StartRender(WeakPointer<Daemons::Window::IRenderContext> target) {
+void SDL2Driver::StartRender(WeakPointer<IRenderContext> target) {
+    SDL_RenderClear(renderers[target.Get()]);
 }
 
-void EssexEngine::Drivers::SDL2::SDL2Driver::FinishRender(WeakPointer<Daemons::Window::IRenderContext> target) {
+void SDL2Driver::FinishRender(WeakPointer<IRenderContext> target) {
+    SDL_RenderPresent(renderers[target.Get()]);
+
+    SDL_FreeSurface(rgbaBuffers[target.Get()]);
+    rgbaBuffers[target.Get()] = SDL_ConvertSurfaceFormat(buffers[target.Get()].Get(), SDL_PIXELFORMAT_RGBA32, 0);
+    target->RenderToContext(WeakPointer<void>(rgbaBuffers[target.Get()]->pixels));
+
+    //SDL_PumpEvents();
+/*
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
 
-    }
+    }*/
 }
 
-void EssexEngine::Drivers::SDL2::SDL2Driver::RenderEntity(WeakPointer<Daemons::Window::IRenderContext> target, WeakPointer<Daemons::Gfx::Entity> entity) {
-    SDL2Sprite* sprite = (SDL2Sprite*)(entity.Get()->GetSprite().Get());
+void SDL2Driver::RenderEntity(WeakPointer<IRenderContext> target, WeakPointer<Entity> entity) {
+    WeakPointer<SDL2Sprite> sprite = entity->GetSprite().Cast<SDL2Sprite>();
     
-    glEnable(GL_BLEND);
-    //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    
-    float texw, texh;
-    SDL_GL_BindTexture(sprite->GetSprite(), &texw, &texh);
-    
-    GLfloat Vertices[] = {
-        (float)entity.Get()->GetX(), (float)entity.Get()->GetY(), 0,
-        ((float)entity.Get()->GetX() + (float)sprite->GetWidth()) * entity.Get()->GetScaleX(), (float)entity.Get()->GetY(), 0,
-        ((float)entity.Get()->GetX() + (float)sprite->GetWidth()) * entity.Get()->GetScaleX(), ((float)entity.Get()->GetY() + (float)sprite->GetHeight()) * entity.Get()->GetScaleY(), 0,
-        (float)entity.Get()->GetX(), ((float)entity.Get()->GetY() + (float)sprite->GetHeight()) * entity.Get()->GetScaleY(), 0};
-    GLfloat TexCoord[] = {
-        (float)((float)sprite->GetX() / (float)sprite->GetTotalWidth()), (float)((float)sprite->GetY() / (float)sprite->GetTotalHeight()),
-        (float)(((float)sprite->GetX() + (float)sprite->GetWidth()) / (float)sprite->GetTotalWidth()), (float)((float)sprite->GetY() / (float)sprite->GetTotalHeight()),
-        (float)(((float)sprite->GetX() + (float)sprite->GetWidth()) / (float)sprite->GetTotalWidth()), (float)(((float)sprite->GetY() + (float)sprite->GetHeight()) / (float)sprite->GetTotalHeight()),
-        (float)((float)sprite->GetX() / (float)sprite->GetTotalWidth()), (float)(((float)sprite->GetY() + (float)sprite->GetHeight()) / (float)sprite->GetTotalHeight()),
-    };
-    GLubyte indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
-        0,2,3}; // second triangle (bottom left - top right - bottom right)
-    
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, Vertices);
-    
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
-    
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
-    
-    SDL_GL_UnbindTexture(sprite->GetSprite());
-    
+    SDL_Rect stexr;
+    stexr.x = sprite->GetX();
+    stexr.y = sprite->GetY();
+    stexr.w = sprite->GetWidth();
+    stexr.h = sprite->GetWidth();
+
+    SDL_Rect dtexr;
+    dtexr.x = entity->GetX();
+    dtexr.y = entity->GetY();
+    dtexr.w = sprite->GetWidth() * entity.Get()->GetScaleX();
+    dtexr.h = sprite->GetWidth() * entity.Get()->GetScaleX();
+
+    SDL_RenderCopy(renderers[target.Get()], sprite->GetSprite(), &stexr, &dtexr);
 }
 
-void EssexEngine::Drivers::SDL2::SDL2Driver::RenderModel(WeakPointer<Daemons::Window::IRenderContext> target, WeakPointer<Daemons::Gfx::Model> model) {
+void SDL2Driver::RenderModel(WeakPointer<IRenderContext> target, WeakPointer<Model> model) {}
 
-}
+void SDL2Driver::RenderString(WeakPointer<IRenderContext> target, std::string data, int x, int y) {}
 
-void EssexEngine::Drivers::SDL2::SDL2Driver::RenderString(WeakPointer<Daemons::Window::IRenderContext> target, std::string data, int x, int y) {
-}
-
-EssexEngine::WeakPointer<EssexEngine::Daemons::Gfx::ISprite> EssexEngine::Drivers::SDL2::SDL2Driver::GetSprite(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height) {
+EssexEngine::WeakPointer<ISprite> SDL2Driver::GetSprite(WeakPointer<IRenderContext> target, CachedPointer<std::string, IFileBuffer> fileContent, int _x, int _y, int _width, int _height) {
     if (textureCache.find(fileContent->GetFileName()) == textureCache.end() ) {
         SDL_RWops* rw = SDL_RWFromMem(fileContent->GetBuffer(), fileContent->GetSize());
         SDL_Surface* surface = IMG_Load_RW(rw, 1);
-        textureCache[fileContent->GetFileName()] = SDL_CreateTextureFromSurface(renderer, surface);
+        
+        textureCache[fileContent->GetFileName()] = WeakPointer<SDL_Texture>(SDL_CreateTextureFromSurface(renderers[target.Get()], surface));
+        
+        SDL_FreeSurface(surface);
+        //SDL_FreeRW(rw);
     }
-    return EssexEngine::WeakPointer<Daemons::Gfx::ISprite>(new SDL2Sprite(std::move(fileContent), textureCache[fileContent->GetFileName()], _x, _y, _width, _height));
+
+    return WeakPointer<ISprite>(new SDL2Sprite(std::move(fileContent), textureCache[fileContent->GetFileName()], _x, _y, _width, _height));
+}
+
+//IInputDriver
+bool SDL2Driver::IsKeyPressed(Daemons::Input::KeyboardButton::InputKeys key) {
+    /*const Uint8* keyboardState = const_cast <Uint8*> (SDL_GetKeyboardState(NULL));
+
+    switch(key) {
+        case InputKeys::Left:
+            return keyboardState[SDL_SCANCODE_LEFT];
+        case InputKeys::Right:
+            return keyboardState[SDL_SCANCODE_RIGHT];
+        case InputKeys::Up:
+            return keyboardState[SDL_SCANCODE_UP];
+        case InputKeys::Down:
+            return keyboardState[SDL_SCANCODE_DOWN];
+        case InputKeys::Plus:
+            return keyboardState[SDL_SCANCODE_EQUALS];
+        case InputKeys::Minus:
+            return keyboardState[SDL_SCANCODE_MINUS];
+        case InputKeys::Space:
+            return keyboardState[SDL_SCANCODE_SPACE];
+        case InputKeys::Esc:
+            return keyboardState[SDL_SCANCODE_ESCAPE];
+        case InputKeys::Tilde:
+            return keyboardState[SDL_SCANCODE_GRAVE];
+    }*/
+    
+    return false;
+}
+
+bool SDL2Driver::IsMousePressed(Daemons::Input::MouseButton::MouseButtons key, Daemons::Input::MouseEventLocation &data) {
+    return false;
 }
