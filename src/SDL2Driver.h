@@ -73,7 +73,9 @@ namespace SDL2{
         void PlayAudio(WeakPointer<Daemons::Sfx::IAudio> audio);
         void PlayMusic(WeakPointer<Daemons::Sfx::IMusic> music);
         
-        WeakPointer<Daemons::Sfx::IAudio> GetAudio(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent);
+        void SetAudioListenerLocation(int _x, int _y, int _z);
+        void UpdateAudioPosition(WeakPointer<Daemons::Sfx::IAudio> audio, int _x, int _y, int _z);
+        WeakPointer<Daemons::Sfx::IAudio> GetAudio(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _z);
         WeakPointer<Daemons::Sfx::IMusic> GetMusic(CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent);
 
         //BaseDriver
@@ -84,5 +86,9 @@ namespace SDL2{
         std::map<Daemons::Window::IRenderContext*, WeakPointer<SDL_Surface>> buffers;
         std::map<Daemons::Window::IRenderContext*, WeakPointer<SDL_Renderer>> renderers;
         std::map<std::string, WeakPointer<SDL_Texture>> textureCache;
+
+        int audioX;
+        int audioY;
+        int audioZ;
     };
 }}};

@@ -10,11 +10,6 @@
  */
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
-
-#include <EssexEngineCore/BaseUniquePointer.h>
-
 #include <EssexEngineSfxDaemon/IMusic.h>
 
 namespace EssexEngine{
@@ -25,8 +20,12 @@ namespace SDL2{
             SDL2Music(WeakPointer<Daemons::FileSystem::IFileBuffer> data): music(
                 BaseUniquePointer<Mix_Music>(SDL2Music::DeleteMixMusic)
             ) {
-                SDL_RWops *rw = SDL_RWFromMem(data->GetBuffer(), data->GetSize());
-                music.Replace(Mix_LoadMUS_RW(rw, 1));
+                music.Replace(
+                    Mix_LoadMUS_RW(
+                        SDL_RWFromMem(data->GetBuffer(), data->GetSize()),
+                        1
+                    )
+                );
             }
 
             WeakPointer<Mix_Music> GetMusic() {

@@ -35,6 +35,8 @@ SDL2Driver::SDL2Driver(WeakPointer<Context> _context):
         renderers = std::map<Daemons::Window::IRenderContext*, WeakPointer<SDL_Renderer>>();
 
         textureCache = std::map<std::string, WeakPointer<SDL_Texture>>();
+
+        SetAudioListenerLocation(0, 0, 0);
     
         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
         Mix_Init(MIX_INIT_MP3);
@@ -149,17 +151,34 @@ bool SDL2Driver::IsMousePressed(Daemons::Input::MouseButton::MouseButtons key, D
 }
 
 //ISfxDriver
-void SDL2Driver::PlayAudio(WeakPointer<IAudio> audio) {}
+void SDL2Driver::PlayAudio(WeakPointer<IAudio> audio) {
+    int channel = Mix_PlayChannel(-1, audio.Cast<SDL2Audio>()->GetAudio(), 1);
+    audio.Cast<SDL2Audio>()->SetChannel(channel);
+    Mix_SetPosition(channel, 0, 0);
+}
+
 void SDL2Driver::PlayMusic(WeakPointer<IMusic> music) {
-    GetContext()->GetDaemon<Core::Logging::LogDaemon>()->LogLine("play music");
     Mix_PlayMusic(music.Cast<SDL2Music>()->GetMusic(), 1);
 }
 
-WeakPointer<IAudio> SDL2Driver::GetAudio(CachedPointer<std::string, IFileBuffer> fileContent) {
-    return WeakPointer<IAudio>();
+void SDL2Driver::SetAudioListenerLocation(int _x, int _y, int _z) {
+    audioX = _x;
+    audioY = _y;
+    audioZ = _z;
+}
+
+void SDL2Driver::UpdateAudioPosition(WeakPointer<IAudio> audio, int _x, int _y, int _z) {
+    int channel = audio.Cast<SDL2Audio>()->GetChannel();
+    audio.Cast<SDL2Audio>()->SetPosition(_x, _y, _z);
+    Mix_SetPosition(channel, 0, 0);
+}
+
+WeakPointer<IAudio> SDL2Driver::GetAudio(CachedPointer<std::string, IFileBuffer> fileContent, int _x, int _y, int _z) {
+    return WeakPointer<SDL2Audio>(
+        new SDL2Audio(fileContent.ToWeakPointer(), _x, _y, _z)
+    ).Cast<IAudio>();
 }
 
 WeakPointer<IMusic> SDL2Driver::GetMusic(CachedPointer<std::string, IFileBuffer> fileContent) {
-    GetContext()->GetDaemon<Core::Logging::LogDaemon>()->LogLine("get music");
     return WeakPointer<SDL2Music>(new SDL2Music(fileContent.ToWeakPointer())).Cast<IMusic>();
 }
