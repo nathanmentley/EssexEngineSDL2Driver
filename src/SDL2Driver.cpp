@@ -17,9 +17,10 @@ using EssexEngine::Daemons::Input::KeyboardButton::InputKeys;
 
 using EssexEngine::Daemons::FileSystem::IFileBuffer;
 
-using EssexEngine::Daemons::Gfx::Entity;
 using EssexEngine::Daemons::Gfx::ISprite;
+using EssexEngine::Daemons::Gfx::IFont;
 using EssexEngine::Daemons::Gfx::Model;
+using EssexEngine::Daemons::Gfx::Entity;
 
 using EssexEngine::Daemons::Sfx::IMusic;
 using EssexEngine::Daemons::Sfx::IAudio;
@@ -40,6 +41,7 @@ SDL2Driver::SDL2Driver(WeakPointer<Context> _context):
     
         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
         Mix_Init(MIX_INIT_MP3);
+        TTF_Init();
         if(Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640) < 0) {
             GetContext()->GetDaemon<Core::Logging::LogDaemon>()->LogLine("open audio failed");
         }
@@ -47,6 +49,7 @@ SDL2Driver::SDL2Driver(WeakPointer<Context> _context):
 
 SDL2Driver::~SDL2Driver() {
     Mix_CloseAudio();
+    TTF_Quit();
 
     //Clear textureCache since they're weak pointers
     //Clear buffers
@@ -102,9 +105,40 @@ void SDL2Driver::RenderEntity(WeakPointer<IRenderContext> target, WeakPointer<En
 
 void SDL2Driver::RenderModel(WeakPointer<IRenderContext> target, WeakPointer<Model> model) {}
 
-void SDL2Driver::RenderString(WeakPointer<IRenderContext> target, std::string data, int x, int y) {}
+void SDL2Driver::RenderString(WeakPointer<IRenderContext> target, WeakPointer<IFont> font, std::string data, int x, int y) {
+    int fontSize = font.Cast<SDL2Font>()->GetFontSize();
+    SDL_Color white = {255, 255, 255};
+    SDL_Rect rect;
+    
+    BaseUniquePointer<SDL_Surface> surface = BaseUniquePointer<SDL_Surface>(
+        TTF_RenderText_Solid(
+            font.Cast<SDL2Font>()->GetFont().Get(),
+            data.c_str(),
+            white
+        ),
+        [=] (SDL_Surface* ptr) { SDL_FreeSurface(ptr); } 
+    );
+    BaseUniquePointer<SDL_Texture> texture = BaseUniquePointer<SDL_Texture>(
+        SDL_CreateTextureFromSurface(
+            renderers[target.Get()],
+            surface.Get()
+        ),
+        [=] (SDL_Texture* ptr) { SDL_DestroyTexture(ptr); } 
+    );
 
-EssexEngine::WeakPointer<ISprite> SDL2Driver::GetSprite(WeakPointer<IRenderContext> target, CachedPointer<std::string, IFileBuffer> fileContent, int _x, int _y, int _width, int _height) {
+    rect.x = x;
+    rect.y = y;
+    rect.w = fontSize * data.length();
+    rect.h = fontSize;
+
+    SDL_RenderCopy(renderers[target.Get()], texture, NULL, &rect);
+}
+
+WeakPointer<IFont> SDL2Driver::GetFont(WeakPointer<IRenderContext> target, CachedPointer<std::string, IFileBuffer> fileContent, int fontSize) {
+    return WeakPointer<SDL2Font>(new SDL2Font(std::move(fileContent), fontSize)).Cast<IFont>();
+}
+
+WeakPointer<ISprite> SDL2Driver::GetSprite(WeakPointer<IRenderContext> target, CachedPointer<std::string, IFileBuffer> fileContent, int _x, int _y, int _width, int _height) {
     if (textureCache.find(fileContent->GetFileName()) == textureCache.end() ) {
         SDL_RWops* rw = SDL_RWFromMem(fileContent->GetBuffer(), fileContent->GetSize());
         SDL_Surface* surface = IMG_Load_RW(rw, 1);
@@ -112,7 +146,6 @@ EssexEngine::WeakPointer<ISprite> SDL2Driver::GetSprite(WeakPointer<IRenderConte
         textureCache[fileContent->GetFileName()] = WeakPointer<SDL_Texture>(SDL_CreateTextureFromSurface(renderers[target.Get()], surface));
         
         SDL_FreeSurface(surface);
-        //SDL_FreeRW(rw);
     }
 
     return WeakPointer<ISprite>(new SDL2Sprite(std::move(fileContent), textureCache[fileContent->GetFileName()], _x, _y, _width, _height));
