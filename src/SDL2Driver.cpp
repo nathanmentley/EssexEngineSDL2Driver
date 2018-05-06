@@ -128,8 +128,8 @@ void SDL2Driver::RenderString(WeakPointer<IRenderContext> target, WeakPointer<IF
 
     rect.x = x;
     rect.y = y;
-    rect.w = fontSize * data.length();
-    rect.h = fontSize;
+    rect.w = (fontSize * data.length()) / 2;
+    rect.h = fontSize / 2;
 
     SDL_RenderCopy(renderers[target.Get()], texture, NULL, &rect);
 }
