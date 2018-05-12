@@ -1,7 +1,7 @@
 /* 
  * Essex Engine
  * 
- * Copyright (C) 2017 Nathan Mentley - All Rights Reserved
+ * Copyright (C) 2018 Nathan Mentley - All Rights Reserved
  * You may use, distribute and modify this code under the
  * terms of the BSD license.
  *
@@ -17,7 +17,6 @@ using EssexEngine::WeakPointer;
 using EssexEngine::Drivers::SDL2::SDL2Driver;
 using EssexEngine::Daemons::Gfx::IGfxDriver;
 using EssexEngine::Daemons::Sfx::ISfxDriver;
-using EssexEngine::Daemons::Input::IInputDriver;
 
 extern "C" {
     void driver_init(WeakPointer<Context> context) {
@@ -28,9 +27,6 @@ extern "C" {
         );
         context->RegisterDriver<ISfxDriver>(
             driver.Cast<ISfxDriver>() 
-        );
-        context->RegisterDriver<IInputDriver>(
-            driver.Cast<IInputDriver>()
         );
     }
 }

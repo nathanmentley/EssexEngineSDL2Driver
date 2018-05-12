@@ -13,7 +13,6 @@ target_link_libraries(EssexEngineSDL2Driver ${OPENGL_LIBRARIES})
 target_link_libraries(EssexEngineSDL2Driver EssexEngineCore)
 target_link_libraries(EssexEngineSDL2Driver EssexEngineGfxDaemon)
 target_link_libraries(EssexEngineSDL2Driver EssexEngineSfxDaemon)
-target_link_libraries(EssexEngineSDL2Driver EssexEngineInputDaemon)
 target_link_libraries(EssexEngineSDL2Driver EssexEngineSystemDaemon)
 target_link_libraries(EssexEngineSDL2Driver EssexEngineFileSystemDaemon)
 

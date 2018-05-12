@@ -1,7 +1,7 @@
 /* 
  * Essex Engine
  * 
- * Copyright (C) 2017 Nathan Mentley - All Rights Reserved
+ * Copyright (C) 2018 Nathan Mentley - All Rights Reserved
  * You may use, distribute and modify this code under the
  * terms of the BSD license.
  *
@@ -12,8 +12,6 @@
 #include <EssexEngineSDL2Driver/SDL2Driver.h>
 
 using EssexEngine::WeakPointer;
-
-using EssexEngine::Daemons::Input::KeyboardButton::InputKeys;
 
 using EssexEngine::Daemons::FileSystem::IFileBuffer;
 
@@ -76,13 +74,13 @@ void SDL2Driver::FinishRender(WeakPointer<IRenderContext> target) {
     rgbaBuffers[target.Get()] = SDL_ConvertSurfaceFormat(buffers[target.Get()].Get(), SDL_PIXELFORMAT_RGBA32, 0);
     target->RenderToContext(WeakPointer<void>(rgbaBuffers[target.Get()]->pixels));
 
-    //SDL_PumpEvents();
-/*
+    SDL_PumpEvents();
+
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
 
-    }*/
+    }
 }
 
 void SDL2Driver::RenderEntity(WeakPointer<IRenderContext> target, WeakPointer<Entity> entity) {
@@ -149,38 +147,6 @@ WeakPointer<ISprite> SDL2Driver::GetSprite(WeakPointer<IRenderContext> target, C
     }
 
     return WeakPointer<ISprite>(new SDL2Sprite(std::move(fileContent), textureCache[fileContent->GetFileName()], _x, _y, _width, _height));
-}
-
-//IInputDriver
-bool SDL2Driver::IsKeyPressed(Daemons::Input::KeyboardButton::InputKeys key) {
-    /*const Uint8* keyboardState = const_cast <Uint8*> (SDL_GetKeyboardState(NULL));
-
-    switch(key) {
-        case InputKeys::Left:
-            return keyboardState[SDL_SCANCODE_LEFT];
-        case InputKeys::Right:
-            return keyboardState[SDL_SCANCODE_RIGHT];
-        case InputKeys::Up:
-            return keyboardState[SDL_SCANCODE_UP];
-        case InputKeys::Down:
-            return keyboardState[SDL_SCANCODE_DOWN];
-        case InputKeys::Plus:
-            return keyboardState[SDL_SCANCODE_EQUALS];
-        case InputKeys::Minus:
-            return keyboardState[SDL_SCANCODE_MINUS];
-        case InputKeys::Space:
-            return keyboardState[SDL_SCANCODE_SPACE];
-        case InputKeys::Esc:
-            return keyboardState[SDL_SCANCODE_ESCAPE];
-        case InputKeys::Tilde:
-            return keyboardState[SDL_SCANCODE_GRAVE];
-    }*/
-    
-    return false;
-}
-
-bool SDL2Driver::IsMousePressed(Daemons::Input::MouseButton::MouseButtons key, Daemons::Input::MouseEventLocation &data) {
-    return false;
 }
 
 //ISfxDriver

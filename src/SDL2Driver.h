@@ -1,7 +1,7 @@
 /* 
  * Essex Engine
  * 
- * Copyright (C) 2017 Nathan Mentley - All Rights Reserved
+ * Copyright (C) 2018 Nathan Mentley - All Rights Reserved
  * You may use, distribute and modify this code under the
  * terms of the BSD license.
  *
@@ -26,7 +26,6 @@
 #include <EssexEngineCore/Context.h>
 #include <EssexEngineCore/LogDaemon.h>
 
-#include <EssexEngineInputDaemon/IInputDriver.h>
 #include <EssexEngineGfxDaemon/IGfxDriver.h>
 #include <EssexEngineSfxDaemon/ISfxDriver.h>
 
@@ -38,7 +37,7 @@
 namespace EssexEngine{
 namespace Drivers{
 namespace SDL2{
-    class SDL2Driver:public Core::Drivers::Base::BaseDriver, public Daemons::Gfx::IGfxDriver, public Daemons::Sfx::ISfxDriver, public Daemons::Input::IInputDriver
+    class SDL2Driver:public Core::Drivers::Base::BaseDriver, public Daemons::Gfx::IGfxDriver, public Daemons::Sfx::ISfxDriver
     {
     public:
         SDL2Driver(WeakPointer<Context> _context);
@@ -68,10 +67,6 @@ namespace SDL2{
         WeakPointer<Daemons::Gfx::IFont> GetFont(WeakPointer<Daemons::Window::IRenderContext> target, CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int fontSize);
         WeakPointer<Daemons::Gfx::ISprite> GetSprite(WeakPointer<Daemons::Window::IRenderContext> target, CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height);
         
-        //IInputDriver
-        bool IsKeyPressed(Daemons::Input::KeyboardButton::InputKeys key);
-        bool IsMousePressed(Daemons::Input::MouseButton::MouseButtons key,  Daemons::Input::MouseEventLocation &data);
-
         //ISfxDriver
         void PlayAudio(WeakPointer<Daemons::Sfx::IAudio> audio);
         void PlayMusic(WeakPointer<Daemons::Sfx::IMusic> music);
