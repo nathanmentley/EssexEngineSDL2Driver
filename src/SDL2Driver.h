@@ -55,7 +55,9 @@ namespace SDL2{
         }
         
         //IGfxDriver
-        void Setup(WeakPointer<Daemons::Window::IRenderContext> target);
+        void SetupGfx();
+        
+        void SetupRenderContext(WeakPointer<Daemons::Window::IRenderContext> target);
 
         void StartRender(WeakPointer<Daemons::Window::IRenderContext> target);
         void FinishRender(WeakPointer<Daemons::Window::IRenderContext> target);
@@ -68,6 +70,8 @@ namespace SDL2{
         WeakPointer<Daemons::Gfx::ISprite> GetSprite(WeakPointer<Daemons::Window::IRenderContext> target, CachedPointer<std::string, Daemons::FileSystem::IFileBuffer> fileContent, int _x, int _y, int _width, int _height);
         
         //ISfxDriver
+        void SetupSfx();
+
         void PlayAudio(WeakPointer<Daemons::Sfx::IAudio> audio);
         void PlayMusic(WeakPointer<Daemons::Sfx::IMusic> music);
         

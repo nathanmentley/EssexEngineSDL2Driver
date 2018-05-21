@@ -36,31 +36,23 @@ SDL2Driver::SDL2Driver(WeakPointer<Context> _context):
         textureCache = std::map<std::string, WeakPointer<SDL_Texture>>();
 
         SetAudioListenerLocation(0, 0, 0);
-    
-        SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-        Mix_Init(MIX_INIT_MP3);
-        TTF_Init();
-        if(Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640) < 0) {
-            GetContext()->GetDaemon<Core::Logging::LogDaemon>()->LogLine("open audio failed");
-        }
     }
 
 SDL2Driver::~SDL2Driver() {
     Mix_CloseAudio();
     TTF_Quit();
-
-    //Clear textureCache since they're weak pointers
-    //Clear buffers
-    //Clear renderers
 }
 
 //IGfxDriver
-void SDL2Driver::Setup(WeakPointer<IRenderContext> target) {
+void SDL2Driver::SetupGfx() {
+    SDL_Init(SDL_INIT_VIDEO);
+    TTF_Init();
+}
+
+void SDL2Driver::SetupRenderContext(WeakPointer<IRenderContext> target) {
     buffers[target.Get()] = SDL_CreateRGBSurface(0, target->GetWidth(), target->GetHeight(), 32, 0, 0, 0, 0);
     rgbaBuffers[target.Get()] = SDL_CreateRGBSurface(0, target->GetWidth(), target->GetHeight(), 32, 0, 0, 0, 0);
     renderers[target.Get()] = SDL_CreateSoftwareRenderer(buffers[target.Get()]);
-
-    target->RenderToContext(WeakPointer<void>(buffers[target.Get()]->pixels));
 }
 
 void SDL2Driver::StartRender(WeakPointer<IRenderContext> target) {
@@ -73,14 +65,6 @@ void SDL2Driver::FinishRender(WeakPointer<IRenderContext> target) {
     SDL_FreeSurface(rgbaBuffers[target.Get()]);
     rgbaBuffers[target.Get()] = SDL_ConvertSurfaceFormat(buffers[target.Get()].Get(), SDL_PIXELFORMAT_RGBA32, 0);
     target->RenderToContext(WeakPointer<void>(rgbaBuffers[target.Get()]->pixels));
-
-    SDL_PumpEvents();
-
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
-    {
-
-    }
 }
 
 void SDL2Driver::RenderEntity(WeakPointer<IRenderContext> target, WeakPointer<Entity> entity) {
@@ -150,6 +134,14 @@ WeakPointer<ISprite> SDL2Driver::GetSprite(WeakPointer<IRenderContext> target, C
 }
 
 //ISfxDriver
+void SDL2Driver::SetupSfx() {
+    SDL_Init(SDL_INIT_AUDIO);
+    Mix_Init(MIX_INIT_MP3);
+    if(Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640) < 0) {
+        GetContext()->GetDaemon<Core::Logging::LogDaemon>()->LogLine("open audio failed");
+    }
+}
+
 void SDL2Driver::PlayAudio(WeakPointer<IAudio> audio) {
     int channel = Mix_PlayChannel(-1, audio.Cast<SDL2Audio>()->GetAudio(), 1);
     audio.Cast<SDL2Audio>()->SetChannel(channel);
